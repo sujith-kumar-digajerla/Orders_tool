@@ -2,7 +2,6 @@ import datetime as dt
 import streamlit as st
 import snowflake.connector
 import pandas as pdt
-import matplotlib.pyplot as plt
 
 st.title('Orders tool')
 date = st.date_input("🗓date:", dt.date(2023, 1, 1))
