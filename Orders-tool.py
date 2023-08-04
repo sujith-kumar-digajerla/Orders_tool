@@ -20,7 +20,4 @@ if st.button('Submit'):
 if st.button('Show Data'):
     cur = cnx.cursor()
     data = cur.execute("select * from USERINPUTDB.OR_REV_SCHEMA.Orders_tbl").fetchall()
-    df = pd.DataFrame(data)
-    print(df)
-    df.plot(kind='line', x='Date', y='Orders')
-    plt.show()
+    df = st.dataframe(data)
