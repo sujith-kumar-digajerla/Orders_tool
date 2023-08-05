@@ -1,6 +1,8 @@
 import datetime as dt
 import streamlit as st
 import snowflake.connector
+import pandas as pd
+import streamlit.components.v1 as components
 
 st.title('🧾 Orders tool 🧾')
 
@@ -33,10 +35,34 @@ with submit_:
         cur = cnx.cursor()
         cur.execute(
             "insert into USERINPUTDB.OR_REV_SCHEMA.Orders_tbl values ('" + date_str + "' , '" + BA + "' , '" + Division + "' , '" + Orders + "' ) ;")
-        st.text('Submitted !')
+        st.success('Success !')
 
+Raw_data, Orders_ba, Orders_mnth, Orders_div, pbi = st.tabs(["Raw data", "Orders by BA", "Orders by Month", "Orders by Division", "Power BI"])
 
-if st.button('Show Data'):
+with Raw_data:
     cur = cnx.cursor()
-    data = cur.execute("select * from USERINPUTDB.OR_REV_SCHEMA.Orders_tbl").fetchall()
-    df = st.dataframe(data)
+    data = cur.execute("select * from USERINPUTDB.OR_REV_SCHEMA.Orders_tbl")
+    df = pd.DataFrame(data, columns=['Date', 'BA', 'Division', 'Orders'])
+    st.table(df)
+
+with Orders_ba:
+    cur = cnx.cursor()
+    data = cur.execute("select BA,sum(Orders) from USERINPUTDB.OR_REV_SCHEMA.ORDERS_TBL group by BA;")
+    df = pd.DataFrame(data, columns=['BA', 'Orders'])
+    st.bar_chart(data=df, x='BA', y='Orders', use_container_width=True)
+
+with Orders_mnth:
+    cur = cnx.cursor()
+    data = cur.execute(
+    "select month(DATE_::DATE) as monthn, monthname(DATE_::DATE) as month_,sum(Orders) from USERINPUTDB.OR_REV_SCHEMA.ORDERS_TBL group by monthn,month_ order by monthn;")
+    df = pd.DataFrame(data, columns=['monthn', 'month_', 'Orders'])
+    st.line_chart(data=df, x='month_', y='Orders', use_container_width=True)
+
+with Orders_div:
+    cur = cnx.cursor()
+    data = cur.execute("select DIVISION,sum(Orders) from USERINPUTDB.OR_REV_SCHEMA.ORDERS_TBL group by DIVISION;")
+    df = pd.DataFrame(data, columns=['Division', 'Orders'])
+    st.bar_chart(data=df, x='Division', y='Orders', use_container_width=True)
+
+with pbi:
+    components.iframe("https://app.powerbi.com/reportEmbed?reportId=ef33ff8c-5730-42d4-8ca6-840df4d54990&autoAuth=true&ctid=372ee9e0-9ce0-4033-a64a-c07073a91ecd", width=800, height=500)
